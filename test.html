@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NEONHAVEN — City Interface</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#07050a;
+      --neon-pink:#ff3ba8;
+      --neon-cyan:#00e6ff;
+      --neon-yellow:#ffd86b;
+      --glass: rgba(255,255,255,0.04);
+      --card:#0b0b10;
+      --accent: linear-gradient(90deg,var(--neon-cyan),var(--neon-pink));
+      --mono: 'Share Tech Mono', monospace;
+      --ui: 'Inter', system-ui, Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; padding:28px; min-height:100%; background:
+        radial-gradient(800px 400px at 10% 10%, rgba(0,230,255,0.03), transparent 6%),
+        radial-gradient(600px 300px at 90% 90%, rgba(255,59,168,0.03), transparent 8%),
+        var(--bg); color:#dbe9ff; font-family:var(--ui); -webkit-font-smoothing:antialiased;
+      background-attachment:fixed; 
+    }
+    header{display:flex;align-items:center;gap:18px;margin-bottom:22px}
+    .logo{font-family:var(--mono);color:var(--neon-cyan);font-weight:800;font-size:22px;letter-spacing:2px;}
+    .tag{font-size:12px;color:var(--neon-pink);opacity:0.9}
+
+    .container{display:grid;grid-template-columns:1fr 420px;gap:20px}
+
+    /* HERO */
+    .hero{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); padding:22px;border-radius:12px;box-shadow:0 4px 50px rgba(0,0,0,0.6);border:1px solid rgba(0,255,255,0.03)}
+    .city-title{font-family:var(--mono);font-size:36px;color:var(--neon-pink);text-shadow:0 0 12px rgba(255,59,168,0.14)}
+    .subtitle{color:#9fb7d9;margin-top:6px}
+    .lore{margin-top:12px;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.0));padding:12px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02);font-size:13px;color:#c9e7ff}
+
+    /* DASHBOARD */
+    .dashboard{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);}
+    .stat{font-family:var(--mono);font-size:18px;color:var(--neon-cyan)}
+    .spark{font-size:12px;color:#8fb5d9}
+
+    .meter{height:10px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden;margin-top:8px}
+    .bar{height:100%;width:40%;background:var(--accent);box-shadow:0 0 12px rgba(0,230,255,0.08);}
+    .bar.traffic{width:73%}
+    .bar.energy{width:52%}
+    .bar.security{width:28%}
+
+    /* RIGHT COLUMN */
+    aside{display:flex;flex-direction:column;gap:12px}
+    .map{background:linear-gradient(135deg, rgba(0,0,0,0.3), rgba(255,255,255,0.02));padding:14px;border-radius:12px;min-height:180px;border:1px solid rgba(255,255,255,0.03)}
+    .mini-map{width:100%;height:120px;background:repeating-linear-gradient(45deg, rgba(0,0,0,0.15) 0 1px, rgba(0,0,0,0.08) 1px 6px);border-radius:8px;position:relative;overflow:hidden}
+    .node{position:absolute;background:var(--neon-pink);width:10px;height:10px;border-radius:50%;box-shadow:0 0 8px var(--neon-pink)}
+    .node.corp{background:var(--neon-cyan);left:68%;top:30%}
+    .node.market{left:24%;top:60%}
+    .node.docks{left:12%;top:18%}
+
+    /* DISTRICTS GRID */
+    .districts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    .district{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border:1px solid rgba(255,255,255,0.02)}
+    .district h4{font-family:var(--mono);margin:0;color:var(--neon-yellow)}
+    .district p{font-size:13px;color:#cfeeff}
+
+    /* SLANG & FOOD */
+    section{margin-top:18px}
+    details{background:var(--card);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+    summary{cursor:pointer;font-family:var(--mono);padding:6px}
+
+    .food-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .stall{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:linear-gradient(90deg, rgba(0,0,0,0.18), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02)}
+    .stall .name{font-weight:700}
+    .stall .desc{font-size:12px;color:#b7d6f6}
+
+    /* SECRET ACCESS (checkbox hack) */
+    .secret-wrap{margin-top:12px}
+    #secret-toggle{display:none}
+    .secret-btn{display:inline-block;padding:8px 12px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--neon-pink);cursor:pointer;font-family:var(--mono)}
+    #secret-toggle:checked + .secret-btn{box-shadow:0 0 20px rgba(255,59,168,0.12);}
+
+    .secret-panel{max-height:0;overflow:hidden;transition:max-height .5s ease;padding:0 0;border-radius:8px}
+    #secret-toggle:checked ~ .secret-panel{max-height:260px;padding:12px;margin-top:12px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(255,255,255,0.01))}
+
+    .console{background:#000a12;border-radius:8px;padding:12px;color:#8ff2ff;font-family:var(--mono);font-size:12px;line-height:1.4;border:1px solid rgba(0,230,255,0.06);}
+    .console .row{display:flex;justify-content:space-between}
+    .console .prompt{color:#a6fffe}
+
+    /* TIPS */
+    .tips{background:linear-gradient(90deg, rgba(0,0,0,0.2), rgba(255,255,255,0.01));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+    .tips ol{padding-left:18px;margin:0}
+    .tips li{margin:8px 0;font-size:14px}
+
+    /* tiny footer */
+    footer{margin-top:16px;color:#7ea7d1;font-size:12px;text-align:center}
+
+    /* responsive */
+    @media (max-width:980px){.container{grid-template-columns:1fr}.districts{grid-template-columns:repeat(2,1fr)}aside{order:-1}}
+    @media (max-width:640px){.districts{grid-template-columns:1fr}}
+
+    /* subtle glitch effect */
+    .glitch{position:relative}
+    .glitch::after,.glitch::before{content:attr(data-text);position:absolute;left:2px;top:2px;opacity:0.6}
+    .glitch::before{color:var(--neon-cyan);clip-path:polygon(0 0,100% 0,100% 50%,0 50%);animation:gl 2s infinite}
+    .glitch::after{color:var(--neon-pink);clip-path:polygon(0 50%,100% 50%,100% 100%,0 100%);animation:gl 2s infinite reverse}
+    @keyframes gl{0%{transform:translateX(0)}50%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="logo">NEONHAVEN</div>
+      <div class="tag">City Interface — Live Readout</div>
+    </div>
+    <div style="margin-left:auto;font-size:12px;color:#92c6ff">Public Access · Tourist Mode</div>
+  </header>
+
+  <div class="container">
+    <main class="hero">
+      <div class="city-title glitch" data-text="NEONHAVEN">NEONHAVEN</div>
+      <div class="subtitle">A high-density urban cluster where neon meets code. Welcome, visitor.</div>
+
+      <div class="lore">
+        <strong>Lore</strong>: Once a porttown, now a network of vertical neighborhoods — glass, chrome, and hacked infrastructure.
+        TransCorp and the Syndicates push power and information down to private grids. Tourists come for the street food, the skyline, and the black-market art.
+      </div>
+
+      <div class="dashboard">
+        <div class="card">
+          <div class="stat">Population: <span style="color:#fff;">4.9M</span></div>
+          <div class="spark">Density cores online: 92%</div>
+          <div class="meter" aria-hidden><div class="bar traffic"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="stat">Grid Integrity</div>
+          <div class="spark">Local microgrids active</div>
+          <div class="meter" aria-hidden><div class="bar energy"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="stat">Security Alerts</div>
+          <div class="spark">Minor infractions: 18</div>
+          <div class="meter" aria-hidden><div class="bar security"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="stat">Net Latency</div>
+          <div class="spark">Avg 28ms • Peers: 12.4k</div>
+          <div class="meter" aria-hidden><div class="bar" style="width:24%"></div></div>
+        </div>
+      </div>
+
+      <section class="districts" aria-label="Districts overview">
+        <div class="district">
+          <h4>Neon Docks</h4>
+          <p>Shipping cranes, fog, and the media barges. Illegal mods are sold behind the fish stalls.</p>
+        </div>
+        <div class="district">
+          <h4>Glass Spire</h4>
+          <p>Corporate towers and data vaults. ID checks are strict — dress to blend.</p>
+        </div>
+        <div class="district">
+          <h4>Crosswire Bazaar</h4>
+          <p>Market of old-world vendors and black-market rigs. Great for street food and firmware swaps.</p>
+        </div>
+        <div class="district">
+          <h4>Old Quarter</h4>
+          <p>Neo-bar alleys, vinyl shops, and ghost-lanterns. Atmosphere > amenities.</p>
+        </div>
+        <div class="district">
+          <h4>Arbor Heights</h4>
+          <p>Vertical parks, clean air domes, overpriced synth-coffee — bring a jacket.</p>
+        </div>
+        <div class="district">
+          <h4>Rustbelt</h4>
+          <p>Machine shops and tuning dens. If you're looking for custom implants, ask quietly.</p>
+        </div>
+      </section>
+
+      <section>
+        <h3 style="font-family:var(--mono);margin-top:16px">Local Slang</h3>
+        <details>
+          <summary>Zeroed —</summary>
+          <div style="padding:8px">Being 'zeroed' means your digital ID is flagged and effectively erased from public registries. People who get zeroed lose access to city services and may be hunted by enforcement nets.</div>
+        </details>
+        <details style="margin-top:8px">
+          <summary>Patch —</summary>
+          <div style="padding:8px">Quick, often shady firmware fix. Useful but unstable.</div>
+        </details>
+        <details style="margin-top:8px">
+          <summary>Bloom —</summary>
+          <div style="padding:8px">When neon spills across the skyline after a rain; also used to describe viral art.</div>
+        </details>
+      </section>
+
+      <section class="tips">
+        <h3 style="font-family:var(--mono);margin:0 0 8px 0">Tips — How to not get zeroed</h3>
+        <ol>
+          <li>Keep a burner identity for public-facing interactions. Never use primary creds in bazaars.</li>
+          <li>Carry analogue cash for small vendors — offline trades can't trace you.</li>
+          <li>Patch your comms only at trusted booths; avoid pop-up shacks promising instant ID upgrades.</li>
+          <li>Don't connect to open mesh nodes that ask for your biometric handshake.</li>
+          <li>If an enforcement drone queries you, present a neutral posture and comply; escalation draws cameras.</li>
+        </ol>
+      </section>
+
+    </main>
+
+    <aside>
+      <div class="map card">
+        <div style="font-family:var(--mono);font-size:14px;color:var(--neon-cyan)">City Map</div>
+        <div class="mini-map" aria-hidden>
+          <div class="node corp" title="Corporate Spire"></div>
+          <div class="node market" title="Crosswire Bazaar"></div>
+          <div class="node docks" title="Neon Docks"></div>
+        </div>
+
+        <div style="margin-top:10px;font-size:12px;color:#9fc9ff">Next Transit: Skytram • 04:12 • Boarding at Arbor Heights</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--mono);color:var(--neon-yellow)">Street Food Stalls</div><div style="font-size:12px;color:#93c8ff">Top Picks</div></div>
+        <div class="food-list">
+          <div class="stall"><div><div class="name">Miso & Chrome</div><div class="desc">Fermented noodles with a smoked synth-protein skewer.</div></div><div style="font-size:12px;color:#ffd86b">₹120</div></div>
+          <div class="stall"><div><div class="name">Docks Fry</div><div class="desc">Deep-fried sea-wafers & neon chili dust.</div></div><div style="font-size:12px;color:#ffd86b">₹80</div></div>
+          <div class="stall"><div><div class="name">Bloom Tea</div><div class="desc">Warm tonic served under holographic petals.</div></div><div style="font-size:12px;color:#ffd86b">₹60</div></div>
+        </div>
+      </div>
+
+      <div class="card secret-wrap">
+        <input id="secret-toggle" type="checkbox">
+        <label class="secret-btn" for="secret-toggle">⇢ Unlock: Low-Visibility Access</label>
+
+        <div class="secret-panel">
+          <div class="console" role="status">
+            <div class="row"><div class="prompt">> SYS::FETCH /vaults/neon-temp</div><div>OK</div></div>
+            <div class="row"><div class="prompt">> AUTH::GATE — LEVEL: GHOST</div><div>RESTRICTED</div></div>
+            <div style="margin-top:10px">Secrets: <strong>Black Market Hours — 00:30 to 03:00</strong><br>Whisper-only meet at the 5th pier when the lanterns bloom.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-family:var(--mono);color:var(--neon-cyan);margin-bottom:8px">Live Bulletin</div>
+        <div style="font-size:13px;color:#bfe8ff">• Courtesy update: Sensor sweep scheduled in Rustbelt 02:00–03:00 UTC+5:30</div>
+        <div style="font-size:12px;color:#9fb7d9;margin-top:8px">• Tip: Keep a physical copy of your itinerary in your jacket.</div>
+      </div>
+
+    </aside>
+  </div>
+
+  <footer>
+    NEONHAVEN • Public Access Interface — Not responsible for anything that happens at 03:00.
+  </footer>
+</body>
+</html>
