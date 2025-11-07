@@ -2,258 +2,764 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NEONHAVEN — City Interface</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NightGrid v2 — HyperNeon Interface</title>
+  <meta name="description" content="Tourist portal for NightGrid — denser lore, holograms, neon rain, draggable windows, and micro-games." />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#07050a;
-      --neon-pink:#ff3ba8;
-      --neon-cyan:#00e6ff;
-      --neon-yellow:#ffd86b;
-      --glass: rgba(255,255,255,0.04);
-      --card:#0b0b10;
-      --accent: linear-gradient(90deg,var(--neon-cyan),var(--neon-pink));
-      --mono: 'Share Tech Mono', monospace;
-      --ui: 'Inter', system-ui, Arial;
+      --bg1:#04020a; --bg2:#09041c; --bg3:#0e0830; --neon-pink:#ff00aa; --neon-cyan:#00e5ff; --neon-yellow:#ffd400; --neon-lime:#7cfb3e;
+      --text:#e9eef8; --muted:#9aa7bd; --glass: rgba(255,255,255,0.04);
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; padding:28px; min-height:100%; background:
-        radial-gradient(800px 400px at 10% 10%, rgba(0,230,255,0.03), transparent 6%),
-        radial-gradient(600px 300px at 90% 90%, rgba(255,59,168,0.03), transparent 8%),
-        var(--bg); color:#dbe9ff; font-family:var(--ui); -webkit-font-smoothing:antialiased;
-      background-attachment:fixed; 
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial;background:radial-gradient(1600px 800px at 10% 10%, rgba(0,230,255,0.05), transparent),
+    radial-gradient(1200px 600px at 90% 0%, rgba(255,0,170,0.06), transparent),
+    linear-gradient(180deg,var(--bg1),var(--bg2) 60%, var(--bg3)); color:var(--text); overflow-x:hidden}
+
+    /* scanline + noise overlays */
+    .scanlines::before{content:""; position:fixed; inset:0; pointer-events:none; background:repeating-linear-gradient(transparent,transparent 2px, rgba(255,255,255,.02) 3px); mix-blend-mode:overlay; opacity:.25; z-index:3}
+    .noise::after{content:""; position:fixed; inset:0; pointer-events:none; background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity=".05"/></svg>'); opacity:.6; mix-blend-mode:soft-light; z-index:2}
+
+
+    /* --- bottom gallery --- */
+    .gallery-wrap{
+    margin:28px 18px 10px;
+    padding:18px;
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+    border:1px solid rgba(255,255,255,0.04);
+    box-shadow:0 12px 60px rgba(2,6,23,0.45);
     }
-    header{display:flex;align-items:center;gap:18px;margin-bottom:22px}
-    .logo{font-family:var(--mono);color:var(--neon-cyan);font-weight:800;font-size:22px;letter-spacing:2px;}
-    .tag{font-size:12px;color:var(--neon-pink);opacity:0.9}
+    .gallery-title{ font-family:Orbitron,monospace; font-size:20px; margin:0 0 12px; color:var(--neon-cyan) }
 
-    .container{display:grid;grid-template-columns:1fr 420px;gap:20px}
+    .gallery-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:12px;
+    align-items:stretch;
+    }
+    @media (max-width:900px){ .gallery-grid{ grid-template-columns: repeat(2,1fr); } }
+    @media (max-width:520px){ .gallery-grid{ grid-template-columns: 1fr; } }
 
-    /* HERO */
-    .hero{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); padding:22px;border-radius:12px;box-shadow:0 4px 50px rgba(0,0,0,0.6);border:1px solid rgba(0,255,255,0.03)}
-    .city-title{font-family:var(--mono);font-size:36px;color:var(--neon-pink);text-shadow:0 0 12px rgba(255,59,168,0.14)}
-    .subtitle{color:#9fb7d9;margin-top:6px}
-    .lore{margin-top:12px;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.0));padding:12px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02);font-size:13px;color:#c9e7ff}
+    .gallery-item{
+    position:relative;
+    overflow:hidden;
+    border-radius:12px;
+    cursor:pointer;
+    border:1px solid rgba(255,255,255,0.04);
+    background:linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.1));
+    transition:transform .18s ease, box-shadow .18s ease;
+    min-height:120px;
+    }
+    .gallery-item img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    transform-origin:center;
+    transition:transform .45s cubic-bezier(.2,.9,.27,1), filter .3s;
+    filter: saturate(.95) contrast(1);
+    }
+    .gallery-item:hover{ transform:translateY(-6px); box-shadow:0 18px 60px rgba(0,0,0,0.6), 0 0 26px rgba(255,0,170,0.06) }
+    .gallery-item:hover img{ transform:scale(1.12); filter: saturate(1.2) brightness(1.02) }
 
-    /* DASHBOARD */
-    .dashboard{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);}
-    .stat{font-family:var(--mono);font-size:18px;color:var(--neon-cyan)}
-    .spark{font-size:12px;color:#8fb5d9}
+    /* neon overlay tag */
+    .gallery-badge{
+    position:absolute; left:10px; bottom:10px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;
+    background: linear-gradient(90deg, rgba(0,229,255,0.08), rgba(255,0,170,0.06));
+    color:var(--text); backdrop-filter: blur(4px); border:1px solid rgba(255,255,255,0.02);
+    text-shadow:0 1px 0 rgba(0,0,0,0.6)
+    }
 
-    .meter{height:10px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden;margin-top:8px}
-    .bar{height:100%;width:40%;background:var(--accent);box-shadow:0 0 12px rgba(0,230,255,0.08);}
-    .bar.traffic{width:73%}
-    .bar.energy{width:52%}
-    .bar.security{width:28%}
+    /* lightbox modal */
+    .gallery-modal{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:200; pointer-events:none; opacity:0; transition:opacity .18s }
+    .gallery-modal.open{ pointer-events:auto; opacity:1; }
+    .gallery-modal .box{
+    width:min(1000px,94%); max-height:86vh; background:linear-gradient(180deg, rgba(6,6,8,0.98), rgba(12,6,16,0.96));
+    border-radius:12px; padding:14px; border:1px solid rgba(255,255,255,0.06); box-shadow:0 30px 140px rgba(0,0,0,0.75);
+    display:flex; gap:12px; align-items:flex-start;
+    }
+    .gallery-modal img{ width:auto; max-width:62%; max-height:72vh; border-radius:10px; object-fit:contain; }
+    .gallery-modal .meta{ color:var(--muted); font-size:14px; max-width:36%; overflow:auto }
+    .gallery-modal .meta h4{ margin:0 0 8px; color:var(--neon-pink); font-family:Orbitron,monospace }
+    .gallery-modal .close-btn{ margin-left:auto; background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--text); padding:6px 8px; border-radius:8px; cursor:pointer }
+    @media (max-width:760px){ .gallery-modal .box{ flex-direction:column; align-items:center } .gallery-modal img{ max-width:92%; max-height:50vh } .gallery-modal .meta{ max-width:92% } }
 
-    /* RIGHT COLUMN */
-    aside{display:flex;flex-direction:column;gap:12px}
-    .map{background:linear-gradient(135deg, rgba(0,0,0,0.3), rgba(255,255,255,0.02));padding:14px;border-radius:12px;min-height:180px;border:1px solid rgba(255,255,255,0.03)}
-    .mini-map{width:100%;height:120px;background:repeating-linear-gradient(45deg, rgba(0,0,0,0.15) 0 1px, rgba(0,0,0,0.08) 1px 6px);border-radius:8px;position:relative;overflow:hidden}
-    .node{position:absolute;background:var(--neon-pink);width:10px;height:10px;border-radius:50%;box-shadow:0 0 8px var(--neon-pink)}
-    .node.corp{background:var(--neon-cyan);left:68%;top:30%}
-    .node.market{left:24%;top:60%}
-    .node.docks{left:12%;top:18%}
+    /* header */
+    header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter: blur(8px)}
+    .brand{display:flex;gap:14px;align-items:center}
+    .brand .logo{width:54px;height:54px;border-radius:12px;background:conic-gradient(from 180deg at 50% 50%, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-cyan)); box-shadow:0 8px 40px rgba(0,0,0,0.6), 0 0 34px rgba(0,229,255,0.18) inset; display:flex;align-items:center;justify-content:center; font-family:Orbitron,monospace; font-weight:900}
+    .brand h1{margin:0;font-family:Orbitron,monospace;font-size:24px;letter-spacing:1.2px}
+    .brand p{margin:0;font-size:12px;color:var(--muted)}
 
-    /* DISTRICTS GRID */
-    .districts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
-    .district{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border:1px solid rgba(255,255,255,0.02)}
-    .district h4{font-family:var(--mono);margin:0;color:var(--neon-yellow)}
-    .district p{font-size:13px;color:#cfeeff}
+    .wrap{display:grid;grid-template-columns: 320px 1fr 360px;gap:18px;padding:18px}
 
-    /* SLANG & FOOD */
-    section{margin-top:18px}
-    details{background:var(--card);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
-    summary{cursor:pointer;font-family:var(--mono);padding:6px}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015)); border-radius:14px; padding:16px; border:1px solid rgba(255,255,255,0.06); box-shadow:0 10px 44px rgba(2,6,23,0.5)}
+    .panel h3{margin:0 0 8px}
 
-    .food-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-    .stall{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:linear-gradient(90deg, rgba(0,0,0,0.18), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02)}
-    .stall .name{font-weight:700}
-    .stall .desc{font-size:12px;color:#b7d6f6}
+    /* buttons */
+    .btn{padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-pink)); border:none; color:#061425; font-weight:800; cursor:pointer; letter-spacing:.3px; position:relative; overflow:hidden}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--text)}
+    .btn:hover::after{content:"";position:absolute;inset:-40% -20%; background:radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,255,255,.35), transparent 35%); mix-blend-mode:screen; animation:ripple .7s ease-out}
+    @keyframes ripple{from{opacity:1;transform:scale(.6)} to{opacity:0; transform:scale(1.6)}}
 
-    /* SECRET ACCESS (checkbox hack) */
-    .secret-wrap{margin-top:12px}
-    #secret-toggle{display:none}
-    .secret-btn{display:inline-block;padding:8px 12px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--neon-pink);cursor:pointer;font-family:var(--mono)}
-    #secret-toggle:checked + .secret-btn{box-shadow:0 0 20px rgba(255,59,168,0.12);}
+    /* neon rain canvas in back */
+    #neonRain{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-    .secret-panel{max-height:0;overflow:hidden;transition:max-height .5s ease;padding:0 0;border-radius:8px}
-    #secret-toggle:checked ~ .secret-panel{max-height:260px;padding:12px;margin-top:12px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(255,255,255,0.01))}
+    /* nav accordion */
+    .accordion{border:1px solid rgba(255,255,255,0.06); border-radius:10px; overflow:hidden}
+    .acc-item + .acc-item{border-top:1px solid rgba(255,255,255,0.06)}
+    .acc-head{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; cursor:pointer; background:linear-gradient(90deg,rgba(255,255,255,0.02),transparent)}
+    .acc-head h4{margin:0; font-family:Orbitron,monospace; font-size:14px; letter-spacing:.6px}
+    .acc-body{max-height:0; overflow:hidden; transition:max-height .25s ease}
+    .acc-item.open .acc-body{max-height:300px}
 
-    .console{background:#000a12;border-radius:8px;padding:12px;color:#8ff2ff;font-family:var(--mono);font-size:12px;line-height:1.4;border:1px solid rgba(0,230,255,0.06);}
-    .console .row{display:flex;justify-content:space-between}
-    .console .prompt{color:#a6fffe}
+    /* hero */
+    .hero{position:relative;padding:28px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg, rgba(0,0,0,0.35), rgba(5,2,12,0.7)); border:1px solid rgba(255,255,255,0.06)}
+    .hero h2{font-family:Orbitron,monospace;margin:0 0 6px;font-size:32px; letter-spacing:1px}
+    .tagline{margin:0;color:var(--muted); font-size:15px}
+    .grid-bg{position:absolute;inset:0;opacity:0.14;background-image:linear-gradient(0deg, rgba(0,0,0,0) 49%, rgba(255,255,255,0.03) 50%), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size:100% 60px,60px 100%; mix-blend-mode:screen; filter:blur(1.5px)}
 
-    /* TIPS */
-    .tips{background:linear-gradient(90deg, rgba(0,0,0,0.2), rgba(255,255,255,0.01));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
-    .tips ol{padding-left:18px;margin:0}
-    .tips li{margin:8px 0;font-size:14px}
+    /* districts grid cards */
+    .districts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px}
+    .district{padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04));border:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:transform .18s, box-shadow .18s}
+    .district:hover{transform:translateY(-6px) scale(1.03); box-shadow:0 8px 40px rgba(0,0,0,.45), 0 0 24px rgba(255,0,170,.12)}
+    .district h3{margin:0 0 6px;font-family:Orbitron,monospace}
+    .pills{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{padding:6px 8px;border-radius:999px;background:rgba(0,0,0,0.25);font-size:12px}
 
-    /* tiny footer */
-    footer{margin-top:16px;color:#7ea7d1;font-size:12px;text-align:center}
+    /* right widgets */
+    .widget{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent); border:1px solid rgba(255,255,255,0.06)}
+    .big-num{font-family:Orbitron,monospace;font-size:30px}
+    .muted{color:var(--muted);font-size:13px}
+
+    /* draggable windows */
+    .window{position:absolute; top:120px; left:120px; width:360px; max-width:92vw; border-radius:12px; background:linear-gradient(180deg, rgba(6,6,8,0.96), rgba(12,6,18,0.9)); border:1px solid rgba(255,255,255,0.08); box-shadow:0 20px 80px rgba(0,0,0,.6); user-select:none; z-index:50; display:none}
+    .window .bar{display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; background:linear-gradient(90deg, rgba(255,255,255,0.03), transparent); border-bottom:1px solid rgba(255,255,255,0.06); cursor:move}
+    .window .body{padding:12px; max-height:50vh; overflow:auto}
+    .win-btn{width:10px;height:10px;border-radius:50%}
+
+    /* hologram */
+    .holo{position:relative; border:1px dashed rgba(0,229,255,.4); border-radius:12px; padding:10px; background:linear-gradient(180deg, rgba(0,229,255,.05), transparent)}
+    .holo::after{content:""; position:absolute; inset:0; background:linear-gradient( to bottom, rgba(0,229,255,.2), transparent 40% ); filter:blur(6px); pointer-events:none}
+
+    /* glitch headline */
+    .glitch{position:relative;display:inline-block;color:var(--neon-pink);font-weight:900}
+    .glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;mix-blend-mode:screen;opacity:0.9}
+    .glitch::before{color:var(--neon-cyan);transform:translate3d(-2px,0,0);filter:blur(.7px);animation:gl1 2s infinite}
+    .glitch::after{color:var(--neon-yellow);transform:translate3d(2px,0,0);filter:blur(.7px);animation:gl2 2.1s infinite}
+    @keyframes gl1{0%{transform:translate(0,0)}20%{transform:translate(-6px,-2px)}40%{transform:translate(6px,2px)}60%{transform:translate(-2px,1px)}100%{transform:translate(0,0)}}
+    @keyframes gl2{10%{transform:translate(0,0)}30%{transform:translate(8px,-3px)}50%{transform:translate(-6px,2px)}70%{transform:translate(3px,1px)}100%{transform:translate(0,0)}}
+
+    /* map */
+    #mapCanvas{width:100%;height:100%;display:block;border-radius:12px}
+
+    /* footer */
+    footer{padding:18px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* modals */
+    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.85));backdrop-filter:blur(6px);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+    .modal.open{opacity:1;pointer-events:auto}
+    .modal .card{width:760px;max-width:92%;padding:20px;border-radius:12px;background:linear-gradient(180deg, rgba(6,6,6,0.95), rgba(8,4,12,0.9));border:1px solid rgba(255,255,255,0.06)}
 
     /* responsive */
-    @media (max-width:980px){.container{grid-template-columns:1fr}.districts{grid-template-columns:repeat(2,1fr)}aside{order:-1}}
-    @media (max-width:640px){.districts{grid-template-columns:1fr}}
-
-    /* subtle glitch effect */
-    .glitch{position:relative}
-    .glitch::after,.glitch::before{content:attr(data-text);position:absolute;left:2px;top:2px;opacity:0.6}
-    .glitch::before{color:var(--neon-cyan);clip-path:polygon(0 0,100% 0,100% 50%,0 50%);animation:gl 2s infinite}
-    .glitch::after{color:var(--neon-pink);clip-path:polygon(0 50%,100% 50%,100% 100%,0 100%);animation:gl 2s infinite reverse}
-    @keyframes gl{0%{transform:translateX(0)}50%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+    @media (max-width:1060px){.wrap{grid-template-columns:1fr; padding:12px} header{flex-direction:column;gap:10px}}
   </style>
 </head>
-<body>
+<body class="scanlines noise">
+  <canvas id="neonRain"></canvas>
   <header>
-    <div>
-      <div class="logo">NEONHAVEN</div>
-      <div class="tag">City Interface — Live Readout</div>
+    <div class="brand">
+      <div class="logo">NG</div>
+      <div>
+        <h1><span class="glitch" data-text="NightGrid">NightGrid</span> v2</h1>
+        <p>Official tourist interface — city of neon, dirt & circuits • build: <span id="buildTag"></span></p>
+      </div>
     </div>
-    <div style="margin-left:auto;font-size:12px;color:#92c6ff">Public Access · Tourist Mode</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="muted">Status: <strong style="color:var(--neon-cyan)">GRID LIVE</strong></div>
+      <button class="btn" id="btnAutoTour">Auto Tour</button>
+      <button class="btn ghost" id="btnLore">Roll Lore</button>
+      <button class="btn ghost" id="btnHolo">Hologram</button>
+      <button class="btn ghost" id="btnWindows">Spawn Window</button>
+      <button class="btn" id="btnSettings">Settings</button>
+    </div>
   </header>
 
-  <div class="container">
-    <main class="hero">
-      <div class="city-title glitch" data-text="NEONHAVEN">NEONHAVEN</div>
-      <div class="subtitle">A high-density urban cluster where neon meets code. Welcome, visitor.</div>
-
-      <div class="lore">
-        <strong>Lore</strong>: Once a porttown, now a network of vertical neighborhoods — glass, chrome, and hacked infrastructure.
-        TransCorp and the Syndicates push power and information down to private grids. Tourists come for the street food, the skyline, and the black-market art.
-      </div>
-
-      <div class="dashboard">
-        <div class="card">
-          <div class="stat">Population: <span style="color:#fff;">4.9M</span></div>
-          <div class="spark">Density cores online: 92%</div>
-          <div class="meter" aria-hidden><div class="bar traffic"></div></div>
+  <div class="wrap">
+    <!-- LEFT: accordion navigation -->
+    <aside class="panel" aria-label="left nav">
+      <h3 class="muted">Explore</h3>
+      <div class="accordion" id="accordion">
+        <div class="acc-item open">
+          <div class="acc-head" onclick="toggleAcc(this)"><h4>Districts</h4><span>▾</span></div>
+          <div class="acc-body">
+            <div class="nav-item" style="padding:10px" onclick="focusDistrict('neo-market-plaza')">🕳️ Neo-Market Plaza — undercity crafts</div>
+            <div class="nav-item" style="padding:10px" onclick="focusDistrict('blackwater-docks')">🌊 Blackwater Docks — fog markets</div>
+            <div class="nav-item" style="padding:10px" onclick="focusDistrict('the-grid')">🧮 The Grid — street compute</div>
+            <div class="nav-item" style="padding:10px" onclick="focusDistrict('zenith-corporate-district')">🏙️ Zenith Corporate District — corporate atriums</div>
+          </div>
         </div>
-
-        <div class="card">
-          <div class="stat">Grid Integrity</div>
-          <div class="spark">Local microgrids active</div>
-          <div class="meter" aria-hidden><div class="bar energy"></div></div>
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(this)"><h4>Local Slang</h4><span>▾</span></div>
+          <div class="acc-body" id="slangList" style="padding:10px 12px">
+            <ul style="margin:6px 0 0 18px">
+              <li><strong>Zeroed</strong> — erased without echo.</li>
+              <li><strong>Patch</strong> — quick hack to survive.</li>
+              <li><strong>Floats</strong> — vendors on the Docks.</li>
+              <li><strong>Ghostline</strong> — private mesh only rumors reach.</li>
+            </ul>
+            <div style="display:flex;gap:8px;margin-top:10px"><button class="btn ghost" onclick="expandSlang()">More slang</button></div>
+          </div>
         </div>
-
-        <div class="card">
-          <div class="stat">Security Alerts</div>
-          <div class="spark">Minor infractions: 18</div>
-          <div class="meter" aria-hidden><div class="bar security"></div></div>
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(this)"><h4>Quick Tracks</h4><span>▾</span></div>
+          <div class="acc-body" style="padding:10px 12px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn ghost" onclick="randomSight()">Random Sight</button>
+              <button class="btn ghost" onclick="mapPulse()">Pulse Map</button>
+              <button class="btn" onclick="startTour()">Start Tour</button>
+              <button class="btn ghost" onclick="openLoreWindow()">Open Lore</button>
+            </div>
+          </div>
         </div>
-
-        <div class="card">
-          <div class="stat">Net Latency</div>
-          <div class="spark">Avg 28ms • Peers: 12.4k</div>
-          <div class="meter" aria-hidden><div class="bar" style="width:24%"></div></div>
-        </div>
-      </div>
-
-      <section class="districts" aria-label="Districts overview">
-        <div class="district">
-          <h4>Neon Docks</h4>
-          <p>Shipping cranes, fog, and the media barges. Illegal mods are sold behind the fish stalls.</p>
-        </div>
-        <div class="district">
-          <h4>Glass Spire</h4>
-          <p>Corporate towers and data vaults. ID checks are strict — dress to blend.</p>
-        </div>
-        <div class="district">
-          <h4>Crosswire Bazaar</h4>
-          <p>Market of old-world vendors and black-market rigs. Great for street food and firmware swaps.</p>
-        </div>
-        <div class="district">
-          <h4>Old Quarter</h4>
-          <p>Neo-bar alleys, vinyl shops, and ghost-lanterns. Atmosphere > amenities.</p>
-        </div>
-        <div class="district">
-          <h4>Arbor Heights</h4>
-          <p>Vertical parks, clean air domes, overpriced synth-coffee — bring a jacket.</p>
-        </div>
-        <div class="district">
-          <h4>Rustbelt</h4>
-          <p>Machine shops and tuning dens. If you're looking for custom implants, ask quietly.</p>
-        </div>
-      </section>
-
-      <section>
-        <h3 style="font-family:var(--mono);margin-top:16px">Local Slang</h3>
-        <details>
-          <summary>Zeroed —</summary>
-          <div style="padding:8px">Being 'zeroed' means your digital ID is flagged and effectively erased from public registries. People who get zeroed lose access to city services and may be hunted by enforcement nets.</div>
-        </details>
-        <details style="margin-top:8px">
-          <summary>Patch —</summary>
-          <div style="padding:8px">Quick, often shady firmware fix. Useful but unstable.</div>
-        </details>
-        <details style="margin-top:8px">
-          <summary>Bloom —</summary>
-          <div style="padding:8px">When neon spills across the skyline after a rain; also used to describe viral art.</div>
-        </details>
-      </section>
-
-      <section class="tips">
-        <h3 style="font-family:var(--mono);margin:0 0 8px 0">Tips — How to not get zeroed</h3>
-        <ol>
-          <li>Keep a burner identity for public-facing interactions. Never use primary creds in bazaars.</li>
-          <li>Carry analogue cash for small vendors — offline trades can't trace you.</li>
-          <li>Patch your comms only at trusted booths; avoid pop-up shacks promising instant ID upgrades.</li>
-          <li>Don't connect to open mesh nodes that ask for your biometric handshake.</li>
-          <li>If an enforcement drone queries you, present a neutral posture and comply; escalation draws cameras.</li>
-        </ol>
-      </section>
-
-    </main>
-
-    <aside>
-      <div class="map card">
-        <div style="font-family:var(--mono);font-size:14px;color:var(--neon-cyan)">City Map</div>
-        <div class="mini-map" aria-hidden>
-          <div class="node corp" title="Corporate Spire"></div>
-          <div class="node market" title="Crosswire Bazaar"></div>
-          <div class="node docks" title="Neon Docks"></div>
-        </div>
-
-        <div style="margin-top:10px;font-size:12px;color:#9fc9ff">Next Transit: Skytram • 04:12 • Boarding at Arbor Heights</div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--mono);color:var(--neon-yellow)">Street Food Stalls</div><div style="font-size:12px;color:#93c8ff">Top Picks</div></div>
-        <div class="food-list">
-          <div class="stall"><div><div class="name">Miso & Chrome</div><div class="desc">Fermented noodles with a smoked synth-protein skewer.</div></div><div style="font-size:12px;color:#ffd86b">₹120</div></div>
-          <div class="stall"><div><div class="name">Docks Fry</div><div class="desc">Deep-fried sea-wafers & neon chili dust.</div></div><div style="font-size:12px;color:#ffd86b">₹80</div></div>
-          <div class="stall"><div><div class="name">Bloom Tea</div><div class="desc">Warm tonic served under holographic petals.</div></div><div style="font-size:12px;color:#ffd86b">₹60</div></div>
-        </div>
-      </div>
-
-      <div class="card secret-wrap">
-        <input id="secret-toggle" type="checkbox">
-        <label class="secret-btn" for="secret-toggle">⇢ Unlock: Low-Visibility Access</label>
-
-        <div class="secret-panel">
-          <div class="console" role="status">
-            <div class="row"><div class="prompt">> SYS::FETCH /vaults/neon-temp</div><div>OK</div></div>
-            <div class="row"><div class="prompt">> AUTH::GATE — LEVEL: GHOST</div><div>RESTRICTED</div></div>
-            <div style="margin-top:10px">Secrets: <strong>Black Market Hours — 00:30 to 03:00</strong><br>Whisper-only meet at the 5th pier when the lanterns bloom.</div>
+        <div class="acc-item">
+          <div class="acc-head" onclick="toggleAcc(this)"><h4>City Time</h4><span>▾</span></div>
+          <div class="acc-body" style="padding:10px 12px">
+            <div class="widget">
+              <div>
+                <div class="muted">NightGrid Clock</div>
+                <div class="big-num" id="cityClock">—:—:—</div>
+              </div>
+              <div style="text-align:right">
+                <div class="muted">Phase</div>
+                <div id="phase">—</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="card">
-        <div style="font-family:var(--mono);color:var(--neon-cyan);margin-bottom:8px">Live Bulletin</div>
-        <div style="font-size:13px;color:#bfe8ff">• Courtesy update: Sensor sweep scheduled in Rustbelt 02:00–03:00 UTC+5:30</div>
-        <div style="font-size:12px;color:#9fb7d9;margin-top:8px">• Tip: Keep a physical copy of your itinerary in your jacket.</div>
+      <div style="margin-top:14px;font-size:13px;color:var(--muted)">
+        <div><strong>Judging Criteria</strong></div>
+        <ul>
+          <li>Cyberpunk Vibe — 35%</li>
+          <li>Creativity — 30%</li>
+          <li>Functionality — 20%</li>
+          <li>AI Tool Mastery — 15%</li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- CENTER: main content -->
+    <main>
+      <section class="hero panel">
+        <div class="grid-bg"></div>
+        <h2><span class="glitch" data-text="NightGrid">NightGrid</span> — City Interface</h2>
+        <p class="tagline">Welcome, traveler. Hover, click, and don't feed the billboard AIs after midnight. The Bureau of <em>Soft Security</em> assumes no liability for accidental enlightenment.</p>
+
+        <div class="districts" id="districts">
+          <article id="neo-market-plaza" class="district">
+            <h3>Neo-Market Plaza</h3>
+            <div class="pills">
+              <span class="pill">Market</span><span class="pill">Fog</span><span class="pill">Barter</span>
+            </div>
+            <p class="muted" style="margin-top:8px">Floating stalls sell contraband bulbs, synth-noodles, and bootleg memories. Caution: pickpocket drones.</p>
+          </article>
+
+          <article id="blackwater-docks" class="district">
+            <h3>Blackwater Docks</h3>
+            <div class="pills"><span class="pill">Corporate</span><span class="pill">Holo-lobby</span></div>
+            <p class="muted" style="margin-top:8px">Glass towers and polite security with teeth. Best views at night from the west atrium.</p>
+          </article>
+
+          <article id="the-grid" class="district">
+            <h3>The Grid</h3>
+            <div class="pills"><span class="pill">Plaza</span><span class="pill">Street Compute</span></div>
+            <p class="muted" style="margin-top:8px">Public compute stalls where locals rent cycles. Bring small change — and small lies.</p>
+          </article>
+
+          <article id="zenith-corporate-district" class="district">
+            <h3>Zenith Corporate District</h3>
+            <div class="pills"><span class="pill">Undercity</span><span class="pill">Crafts</span></div>
+            <p class="muted" style="margin-top:8px">Workshops and mechanical priests. Quiet; they'll listen if you offer gears.</p>
+          </article>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:16px;align-items:center;flex-wrap:wrap">
+          <div class="widget" style="flex:1" id="populationWidget">
+            <div>
+              <div class="muted">Active Citizens</div>
+              <div class="big-num" id="activeCount">—</div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted">Network Load</div>
+              <div id="netLoad">—</div>
+            </div>
+          </div>
+
+          <div class="widget" style="width:240px">
+            <div>
+              <div class="muted">Market Index</div>
+              <div class="big-num" id="marketIndex">—</div>
+            </div>
+            <div>
+              <button class="btn ghost" onclick="simulateTrade()">Simulate</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top:16px">
+        <h3 style="margin:0 0 10px">Interactive Map</h3>
+        <div style="height:280px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);position:relative">
+          <canvas id="mapCanvas" width="1200" height="600"></canvas>
+          <div style="position:absolute;right:12px;top:12px;display:flex;gap:8px">
+            <button class="btn ghost" onclick="mapPulse()">Pulse</button>
+            <button class="btn ghost" onclick="spawnPing()">Ping</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- RIGHT: console, holo, lists -->
+    <aside class="panel">
+      <h4 class="muted">Visitor Console</h4>
+      <div class="console holo" id="consoleLog" style="background:#02020a;padding:12px;border-radius:8px;font-family:Share Tech Mono,monospace;color:#6fffe0;height:180px;overflow:auto">Booting NightGrid v2...<br><span style='color:#fff'>Welcome, transient.</span></div>
+
+      <div style="height:12px"></div>
+      <div class="panel" style="padding:12px;margin-top:12px">
+        <h4 class="muted">Top Food Stalls</h4>
+        <ol id="foodList" style="margin-top:6px">
+          <li>ByteBuns — synth-bun & chili oil</li>
+          <li>Holo-Samosa — projection-warm samosas</li>
+          <li>Plasma Pho — ramen + static</li>
+        </ol>
+        <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="showFood()">Open Food Map</button><button class="btn ghost" onclick="addFood()">Add Stall</button></div>
       </div>
 
+      <div style="height:12px"></div>
+        <div class="panel" style="padding:12px;margin-top:12px">
+        <h4 class="muted">Secret Access</h4>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <input
+            id="secretKeyInput"
+            type="password"
+            placeholder="Enter city key"
+            style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.12);padding:8px;border-radius:8px;color:var(--text)"
+            />
+            <button id="secretKeyBtn" class="btn">Access</button>
+        </div>
+        <small class="muted">Hint: city's name is the key.</small>
+        </div>
+
+
+      <div style="height:12px"></div>
+      <div class="panel" style="padding:12px;margin-top:12px">
+        <h4 class="muted">Holo Persona</h4>
+        <div class="holo" id="holoBox" style="min-height:90px; display:flex; align-items:center; padding:12px">👤 <span id="holoText" style="margin-left:8px">Tap <em>Hologram</em> to summon an AI guide.</span></div>
+      </div>
     </aside>
   </div>
 
+  <section class="gallery-wrap panel" id="gallerySection">
+    <h3 class="gallery-title">NightGrid — Neon Gallery</h3>
+    <div class="gallery-grid" id="galleryGrid">
+      <!-- Example items: replace src with your filenames -->
+      <div class="gallery-item" data-title="Neo-Market Plaza" data-desc="A towering holo-billboard stares down over the wet market, neon bleeding into the rain—this frame captures the city’s economy of light and memory. It sells the cyberpunk vibe: corporate spectacle colliding with black-market intimacy, pickpocket drones in the lane and vendors trading stolen sunsets. Use this panel to call out world-building: the UI modal can surface small interactives (vendor lore, trade costs, or a “buy memory” micro-action) so the image not only looks cinematic but also invites gameplay and utility—solid marks for Functionality & Polish." onclick="openGallery(0)">
+        <img src="img1.jpg" loading="lazy" alt="Neon Market"/>
+        <div class="gallery-badge">Neo-Market Plaza</div>
+      </div>
+      <div class="gallery-item" data-title="Blackwater Docks" data-desc="Midnight alleys and mirrored puddles: this piece leans on texture and atmosphere, where neon signs and steam create a dense, lived-in undercity. It’s a creative, original take because it foregrounds the human scale—stalls, crates, and furtive figures—rather than another generic skyline, giving your project narrative hooks for visitors to explore. In the gallery modal, call attention to layered details (reflections, grime, signage) and offer a small interactive—e.g., toggle story fragments or reveal a hidden vendor—to show polish and how AI/creative tooling was used to compose layered scenes." onclick="openGallery(1)">
+        <img src="img2.png" loading="lazy" alt="Midnight Alley"/>
+        <div class="gallery-badge">Blackwater Docks</div>
+      </div>
+      <div class="gallery-item" data-title="Zenith Corporate District" data-desc="The skyline shot reads like a corporate hymn: sharp geometry, drone traffic, and a single tower that monopolizes the skyline—perfect for a thematic statement about power in NightGrid. It’s high-concept and visually authoritative, useful for the “big idea” judges care about: strong theme + original voice. In the lightbox text you can highlight contrasts (public vs private spaces, soft security) and suggest an action (inspect tower: reveal rumor files or an event invite) to demonstrate both polished UX and how generative tools helped craft a coherent, contest-ready aesthetic." onclick="openGallery(2)">
+        <img src="img3.jpg" loading="lazy" alt="Vault Skyline"/>
+        <div class="gallery-badge">Zenith Corporate District</div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- lightbox modal (single shared element) -->
+  <div class="gallery-modal" id="galleryModal" aria-hidden="true">
+    <div class="box" role="dialog" aria-modal="true">
+      <img id="galleryModalImg" src="" alt="gallery large"/>
+      <div class="meta">
+        <h4 id="galleryModalTitle"></h4>
+        <p id="galleryModalDesc"></p>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" onclick="getPass()">Get Pass</button>
+          <button class="btn ghost" onclick="closeGallery()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <footer>
-    NEONHAVEN • Public Access Interface — Not responsible for anything that happens at 03:00.
+    <div class="muted">NightGrid — curated chaos. Shortcuts: <kbd style="background:#081126;padding:4px 6px;border-radius:4px">G</kbd> grid pulse • <kbd style="background:#081126;padding:4px 6px;border-radius:4px">L</kbd> lore • <kbd style="background:#081126;padding:4px 6px;border-radius:4px">H</kbd> hologram</div>
   </footer>
+
+  <!-- MODALS -->
+  <div class="modal" id="modalFood">
+    <div class="card">
+      <h2>Food Stalls Map</h2>
+      <p class="muted">NightGrid's taste map — some stalls are safe, some will charge memories.</p>
+      <ol>
+        <li>ByteBuns — docks, stall #7</li>
+        <li>Holo-Samosa — chrome arc, lower lobby</li>
+        <li>Plasma Pho — the grid, cycle plaza</li>
+      </ol>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn ghost" onclick="closeFood()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalLore">
+    <div class="card">
+      <h2>City Lore Drop</h2>
+      <div id="loreText" class="muted" style="white-space:pre-line"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn ghost" onclick="closeLore()">Close</button>
+        <button class="btn" onclick="rollLore()">Roll Another</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECRET MODAL -->
+    <div id="secretModal" class="gallery-modal" aria-hidden="true" style="pointer-events:none;opacity:0;transition:opacity .18s;">
+        <div class="box" role="dialog" aria-modal="true" style="max-width:680px; width:94%;">
+        <div style="display:flex;align-items:flex-start;gap:12px;width:100%">
+            <div style="flex:1">
+            <h3 style="margin:0 0 8px;color:var(--neon-cyan);font-family:Orbitron,monospace">ACCESS GRANTED — Welcome, Runner.</h3>
+            <p style="color:var(--muted);line-height:1.4">
+                You’ve entered the undergrid of <strong style="color:var(--neon-pink)">NightGrid</strong>.<br>
+                Beyond the neon lies truth. Rumor says the next <strong>Neon Rain Concert</strong> begins at <strong>3:33AM</strong>.<br><br>
+                Grab your <strong>Digital Pass</strong> and don’t get zeroed.
+            </p>
+
+            <div style="display:flex;gap:8px;margin-top:12px">
+                <button id="downloadPassBtn" class="btn">Claim Concert Pass 🎫</button>
+                <button id="closeSecretModalBtn" class="btn ghost">Close</button>
+            </div>
+            </div>
+            <div style="width:150px;display:flex;align-items:center;justify-content:center">
+            <!-- small visual / badge -->
+            <div style="width:110px;height:110px;border-radius:12px;background:linear-gradient(135deg,var(--neon-cyan),var(--neon-pink));display:flex;align-items:center;justify-content:center;color:#061425;font-weight:900;font-family:Orbitron">
+                PASS
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+  
+
+  <!-- WINDOWS: dynamic container -->
+  <div id="desktop"></div>
+
+  <!-- tiny confetti -->
+  <canvas id="confetti" style="position:fixed;left:0;top:0;pointer-events:none;width:100%;height:100%;z-index:100"></canvas>
+
+  <script>
+    // === build tag ===
+    document.getElementById('buildTag').textContent = new Date().toISOString().slice(0,10) + ' • ' + Math.floor(Math.random()*9999).toString(16).toUpperCase();
+
+    // === button ripple cursor position ===
+    document.querySelectorAll('.btn').forEach(b=>{
+      b.addEventListener('pointermove', e=>{
+        const r=b.getBoundingClientRect(); b.style.setProperty('--x', (e.clientX - r.left)+'px'); b.style.setProperty('--y', (e.clientY - r.top)+'px');
+      })
+    })
+
+    // === neon rain background ===
+    const rain = document.getElementById('neonRain');
+    const rctx = rain.getContext('2d');
+    let droplets=[]; function resizeRain(){rain.width=innerWidth; rain.height=innerHeight}
+    addEventListener('resize', resizeRain); resizeRain();
+    function spawnDroplet(){return {x:Math.random()*rain.width, y:Math.random()*-rain.height, v:2+Math.random()*5, l:8+Math.random()*18, c:["#00e5ff","#ff00aa","#ffd400"][Math.floor(Math.random()*3)]}}
+    for(let i=0;i<160;i++) droplets.push(spawnDroplet());
+    function animRain(){rctx.clearRect(0,0,rain.width,rain.height); for(const d of droplets){rctx.strokeStyle=d.c; rctx.lineWidth=1; rctx.beginPath(); rctx.moveTo(d.x,d.y); rctx.lineTo(d.x, d.y+d.l); rctx.stroke(); d.y+=d.v; if(d.y>rain.height) Object.assign(d, spawnDroplet())} requestAnimationFrame(animRain)} animRain()
+
+    // === utilities ===
+    const log = (s)=>{const c=document.getElementById('consoleLog'); c.innerHTML += '<br>'+ s; c.scrollTop=c.scrollHeight}
+    function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+    // === widgets live data ===
+    function updateWidgets(){
+      document.getElementById('activeCount').innerText = (rnd(12000, 98900)).toLocaleString();
+      document.getElementById('netLoad').innerText = rnd(12,96) + '%';
+      document.getElementById('marketIndex').innerText = (rnd(2400, 11200)/10).toFixed(1);
+    }
+    updateWidgets(); setInterval(updateWidgets, 3500);
+
+    // === city clock ===
+    function tickClock(){
+      const d=new Date(); const h=d.getHours().toString().padStart(2,'0'); const m=d.getMinutes().toString().padStart(2,'0'); const s=d.getSeconds().toString().padStart(2,'0');
+      const el=document.getElementById('cityClock'); if(el) el.textContent=`${h}:${m}:${s}`;
+      const phase = (d.getHours()<6?'Deep Night': d.getHours()<12?'Blue Morning': d.getHours()<18?'Smog Noon':'Neon Evening');
+      const ph=document.getElementById('phase'); if(ph) ph.textContent=phase;
+    }
+    tickClock(); setInterval(tickClock,1000);
+
+    // === map canvas ===
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    function drawMap(){
+      const w=canvas.width; const h=canvas.height;
+      ctx.clearRect(0,0,w,h);
+      ctx.fillStyle='rgba(255,255,255,0.03)';
+      for(let x=0;x<w;x+=40){ctx.fillRect(x,0,1,h)}
+      for(let y=0;y<h;y+=40){ctx.fillRect(0,y,w,1)}
+      drawDistrict(160,120,'Neo-Market Plaza','cyan');
+      drawDistrict(520,80,'Blackwater Docks','pink');
+      drawDistrict(820,260,'The Grid','yellow');
+      drawDistrict(320,380,'Zenith Corporate District','magenta');
+    }
+    function drawDistrict(x,y,name,color){
+      ctx.save(); ctx.beginPath(); ctx.arc(x,y,56,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fill();
+      const grad=ctx.createRadialGradient(x,y,20,x,y,80);
+      if(color==='cyan'){grad.addColorStop(0,'rgba(0,229,255,0.10)');grad.addColorStop(1,'transparent')}
+      if(color==='pink'){grad.addColorStop(0,'rgba(255,0,170,0.10)');grad.addColorStop(1,'transparent')}
+      if(color==='yellow'){grad.addColorStop(0,'rgba(255,212,0,0.10)');grad.addColorStop(1,'transparent')}
+      if(color==='magenta'){grad.addColorStop(0,'rgba(255,0,255,0.08)');grad.addColorStop(1,'transparent')}
+      ctx.fillStyle=grad; ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.92)'; ctx.font='700 14px Orbitron, monospace'; ctx.textAlign='center'; ctx.fillText(name,x,y+6);
+      ctx.restore();
+    }
+    drawMap(); setInterval(drawMap,700);
+    function spawnPing(){const x=rnd(40, canvas.width-40), y=rnd(40, canvas.height-40); let r=6; const t=setInterval(()=>{ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.strokeStyle='rgba(0,229,255,'+(1-r/80)+')'; ctx.lineWidth=2; ctx.stroke(); r+=4; if(r>80) clearInterval(t)},30); log('Map ping at '+x+','+y)}
+
+    // === interactions ===
+    function focusDistrict(id){const el=document.getElementById(id); if(!el) return; el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.transition='box-shadow .18s, transform .18s'; el.style.boxShadow='0 10px 40px rgba(0,0,0,0.6), 0 0 18px rgba(255,0,170,0.18)'; el.style.transform='scale(1.02)'; setTimeout(()=>{el.style.boxShadow=''; el.style.transform=''},1200); log('Focused on '+ id.replace(/[-]/g,' '))}
+    function randomSight(){const ids=['neon-docks','chrome-arc','the-grid','vault-wards']; focusDistrict(ids[Math.floor(Math.random()*ids.length)])}
+    function mapPulse(){log('Grid pulse engaged'); const c=document.getElementById('mapCanvas'); c.style.transition='transform .35s'; c.style.transform='scale(1.03)'; setTimeout(()=>c.style.transform='',350)}
+    function startTour(){log('Starting auto tour'); const ids=['neon-docks','chrome-arc','the-grid','vault-wards']; let i=0; const t=setInterval(()=>{focusDistrict(ids[i%ids.length]); i++; if(i>3) clearInterval(t)},900)}
+
+    // === console typing effect ===
+    const messages=[
+      'Syncing to Ghostline…',
+      'Decrypting tourist packet…',
+      'Tip: Bribe with data, not cash.',
+      'Warning: Street preachers are firmware updates in disguise.',
+      'Patch uploaded: Drone misdirection v1.7'
+    ];
+    let mi=0; function typeNext(){const m=messages[mi%messages.length]; mi++; typeToConsole(m)}; setInterval(typeNext, 4200);
+    function typeToConsole(text){const c=document.getElementById('consoleLog'); let i=0; const t=setInterval(()=>{c.innerHTML+= text[i]||''; c.scrollTop=c.scrollHeight; i++; if(i>text.length){c.innerHTML+='<br>'; clearInterval(t)}}, 18)}
+
+    // === modals ===
+    function showFood(){document.getElementById('modalFood').classList.add('open'); log('Opened food map')}
+    function closeFood(){document.getElementById('modalFood').classList.remove('open')}
+
+    // === slang expand ===
+    function expandSlang(){document.getElementById('slangList').querySelector('ul').insertAdjacentHTML('beforeend',`
+      <li><strong>Blue Clock</strong> — time dilated by cheap implants.</li>
+      <li><strong>Toothed Smile</strong> — corp greeting, expect invoice.</li>
+      <li><strong>Cold Sun</strong> — neon that never warms the street.</li>
+    `); log('Expanded slang list')}
+
+    // === secret ===
+    function unlock(){const v=document.getElementById('secretInput').value.trim().toLowerCase(); if(v==='nightgrid' || v==='oldnight'){revealSecret();} else {log('Access denied — key mismatch')}}
+    function revealSecret(){closeFood(); closeLore(); const c=document.getElementById('consoleLog'); c.innerHTML += '<br>Access level: <strong style="color:#fff">GHOST</strong><br>Decrypting packet…'; setTimeout(()=>{c.innerHTML+='<br>Secret: Hidden gala at the Vault Wards tonight. Dress code: conductive.'; spawnConfetti();},1100)}
+
+    // === confetti ===
+    function spawnConfetti(){const cn=document.getElementById('confetti'); const ctx=cn.getContext('2d'); cn.width=innerWidth; cn.height=innerHeight; let pieces=[]; for(let i=0;i<100;i++){pieces.push({x:Math.random()*cn.width,y:Math.random()*-cn.height*0.5,vy:2+Math.random()*4, r:2+Math.random()*3, col:['#ff00aa','#00e5ff','#ffd400'][Math.floor(Math.random()*3)], rot:Math.random()*6})}
+      let t=0; (function anim(){ctx.clearRect(0,0,cn.width,cn.height); for(let p of pieces){p.y+=p.vy; p.rot+=0.1; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.col; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*2); ctx.restore()} t++; if(t<240) requestAnimationFrame(anim); else ctx.clearRect(0,0,cn.width,cn.height) })()}
+
+    // === accordion ===
+    function toggleAcc(head){const item=head.parentElement; item.classList.toggle('open')}
+
+    // === holo persona ===
+    const holoLines=[
+      'I am ASTRID — Adaptive Street Tourism Relay for Insecure Districts.',
+      'Your aura smells like static and optimism.',
+      'Do not feed the koi-drones. They remember faces.',
+      'Tonight the Blackwater Docks sell memories of sunsets that never happened.',
+      'Ask me about the Ghostline. I won\'t answer.'
+    ];
+    function speakHolo(line){const box=document.getElementById('holoBox'); const t=document.getElementById('holoText'); box.style.filter='drop-shadow(0 0 10px rgba(0,229,255,.6))'; t.textContent=''; let i=0; const s=(line||holoLines[Math.floor(Math.random()*holoLines.length)]); const iv=setInterval(()=>{t.textContent += s[i]||''; i++; if(i>s.length){clearInterval(iv); setTimeout(()=>box.style.filter='', 600)}}, 14)}
+
+    // === draggable windows ===
+    const desktop=document.getElementById('desktop'); let z=100; function spawnWindow(title, content){const win=document.createElement('div'); win.className='window'; win.style.left=rnd(60, innerWidth-420)+'px'; win.style.top=rnd(80, innerHeight-260)+'px'; win.style.zIndex=++z; win.innerHTML=`
+      <div class="bar">
+        <div style="display:flex; align-items:center; gap:8px"><span class="win-btn" style="background:#ff5f57"></span><span class="win-btn" style="background:#ffbd2e"></span><span class="win-btn" style="background:#28c840"></span> <strong style="margin-left:6px">${title}</strong></div>
+        <div style="display:flex; gap:6px"><button class="btn ghost" style="padding:6px 8px" onclick="this.closest('.window').remove()">Close</button></div>
+      </div>
+      <div class="body">${content}</div>`; desktop.appendChild(win); enableDrag(win); win.style.display='block'; return win}
+    function enableDrag(win){const bar=win.querySelector('.bar'); let ox=0,oy=0,drag=0; bar.addEventListener('pointerdown', e=>{drag=1; ox=e.clientX - win.offsetLeft; oy=e.clientY - win.offsetTop; win.setPointerCapture(e.pointerId)}); bar.addEventListener('pointermove', e=>{if(!drag) return; win.style.left = (e.clientX - ox) +'px'; win.style.top=(e.clientY - oy)+'px';}); bar.addEventListener('pointerup', e=>{drag=0; try{win.releasePointerCapture(e.pointerId)}catch{}}); win.addEventListener('pointerdown', ()=>win.style.zIndex=++z)}
+    function openLoreWindow(){spawnWindow('Lore Terminal', `<div id="loreInWin" class="muted">Press <em>Roll</em> for fresh intel.</div><div style="display:flex; gap:8px; margin-top:10px"><button class="btn" onclick="document.getElementById('loreInWin').textContent=randomLore()">Roll</button><button class="btn ghost" onclick="spawnConfetti()">Celebrate</button></div>`) }
+
+    // === lore system ===
+    const loreBits=[
+      'The city\'s oldest server, called GRANDMOTHER, hums beneath the Vault Wards. Priests oil her fans with clove and code.',
+      'Every fog bank over the Blackwater Docks hides a market that exists for nine minutes, then deletes itself.',
+      'Chrome Arc\'s elevators whisper your debts aloud if you stand too close after midnight.',
+      'The Grid is a plaza of rented minds. You can lease an hour of genius if you promise to forget what you learn.',
+      'There is a train that never stops, only slows. To board it, you must step between moments.',
+      'The Bureau of Soft Security plays lullabies that only drones can hear. That\'s why they swarm in spirals.',
+      'Some stalls accept payment in laughter. They keep it in jars that glow like battery acid.',
+      'ASTRID was once human. No, really. She tells different versions each night.'
+    ];
+    function randomLore(){return loreBits[Math.floor(Math.random()*loreBits.length)]}
+    function rollLore(){document.getElementById('loreText').textContent = randomLore(); log('Rolled lore drop')}
+
+    // === modal controls ===
+    const modalLore=document.getElementById('modalLore');
+    function openLore(){modalLore.classList.add('open'); rollLore()}
+    function closeLore(){modalLore.classList.remove('open')}
+
+    // === market sim ===
+    function simulateTrade(){log('Simulating market trade…'); const delta=(Math.random()-0.5)*220; const el=document.getElementById('marketIndex'); el.innerText = Math.max(100, parseFloat(el.innerText||500)+delta).toFixed(1)}
+
+    // === food add ===
+    function addFood(){const list=document.getElementById('foodList'); const name='New Stall ' + Math.floor(Math.random()*999); const li=document.createElement('li'); li.innerText = name + ' — mystery spice'; list.appendChild(li); log('Added '+ name)}
+
+    // === keyboard shortcuts ===
+    window.addEventListener('keydown', (e)=>{ const k=e.key.toLowerCase(); if(k==='g'){mapPulse()} if(k==='l'){openLore()} if(k==='h'){speakHolo()} if(k==='escape'){closeFood(); closeLore()} })
+
+    // === settings window ===
+    function openSettings(){
+      const content=`<div class="muted">Toggle visual effects</div>
+      <label style="display:flex; align-items:center; gap:8px; margin-top:8px"><input type="checkbox" id="toggleScan" checked> Scanlines</label>
+      <label style="display:flex; align-items:center; gap:8px; margin-top:6px"><input type="checkbox" id="toggleNoise" checked> Noise</label>
+      <label style="display:flex; align-items:center; gap:8px; margin-top:6px"><input type="checkbox" id="toggleRain" checked> Neon Rain</label>
+      <div style="display:flex; gap:8px; margin-top:10px"><button class="btn" onclick="applySettings()">Apply</button><button class="btn ghost" onclick="spawnConfetti()">Celebrate</button></div>`;
+      spawnWindow('Settings', content)
+    }
+    function applySettings(){ document.body.classList.toggle('scanlines', document.getElementById('toggleScan').checked); document.body.classList.toggle('noise', document.getElementById('toggleNoise').checked); document.getElementById('neonRain').style.display = document.getElementById('toggleRain').checked ? 'block' : 'none'; log('Applied settings') }
+
+    // === header buttons ===
+    document.getElementById('btnAutoTour').addEventListener('click', startTour);
+    document.getElementById('btnLore').addEventListener('click', openLore);
+    document.getElementById('btnHolo').addEventListener('click', ()=>speakHolo());
+    document.getElementById('btnWindows').addEventListener('click', openLoreWindow);
+    document.getElementById('btnSettings').addEventListener('click', openSettings);
+
+    // === helper: click positions for ripples ===
+    document.addEventListener('click', (e)=>{ if(e.target.classList.contains('btn')) return; const dot=document.createElement('div'); dot.style.cssText=`position:fixed; left:${e.clientX-6}px; top:${e.clientY-6}px; width:12px; height:12px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.8) 0%, transparent 60%); mix-blend-mode:screen; pointer-events:none; z-index:20; opacity:.9; transform:scale(.6); transition:all .5s ease-out`; document.body.appendChild(dot); setTimeout(()=>{dot.style.opacity='0'; dot.style.transform='scale(2.2)';}, 10); setTimeout(()=>dot.remove(), 520) })
+
+
+    // --- gallery JS (lightbox + pass) ---
+    const galleryModal = document.getElementById('galleryModal');
+    const modalImg = document.getElementById('galleryModalImg');
+    const modalTitle = document.getElementById('galleryModalTitle');
+    const modalDesc = document.getElementById('galleryModalDesc');
+    const galleryItems = Array.from(document.querySelectorAll('.gallery-item'));
+
+    function openGallery(index){
+    const item = galleryItems[index];
+    if(!item) return;
+    const img = item.querySelector('img');
+    modalImg.src = img.src; // use same image; you can set higher-res path in data-* if you want
+    modalTitle.textContent = item.dataset.title || '';
+    modalDesc.textContent = item.dataset.desc || '';
+    galleryModal.classList.add('open'); galleryModal.setAttribute('aria-hidden','false');
+    log('Opened gallery: ' + modalTitle.textContent);
+    // small zoom flourish
+    modalImg.style.transform = 'scale(.98)';
+    setTimeout(()=>{ modalImg.style.transition='transform .35s ease'; modalImg.style.transform='scale(1)'; }, 30);
+    }
+    function closeGallery(){
+    galleryModal.classList.remove('open'); galleryModal.setAttribute('aria-hidden','true');
+    modalImg.src = '';
+    }
+    // clicking outside the box closes modal
+    galleryModal.addEventListener('click', (e)=>{ if(e.target === galleryModal) closeGallery(); });
+
+    // "Get Pass" action: reveals secret / confetti — customize to fit your secret system
+    function getPass(){
+    closeGallery();
+    // reveal secret concert if unlocked or just give a pass
+    log('You claimed a guest pass — check the console for details.');
+    // small secret reveal (you can replace this with your existing revealSecret)
+    spawnConfetti();
+    setTimeout(()=>{ alert('PASS GRANTED: Vault Wards — show this to the gatekeeper. Dress: conductive.'); }, 220);
+    }
+
+
+    // === SECRET ACCESS / PASS logic (drop into your main script) ===
+    (function(){
+    const secretBtn = document.getElementById("secretKeyBtn");
+    const keyInput = document.getElementById("secretKeyInput");
+    const modal = document.getElementById("secretModal");
+    const closeModalBtn = document.getElementById("closeSecretModalBtn");
+    const downloadBtn = document.getElementById("downloadPassBtn");
+
+    // allowed keys (case-insensitive)
+    const validKeys = ["nightgrid", "oldnight", "night grid"];
+
+    function showSecretModal(){
+        modal.style.pointerEvents = 'auto';
+        modal.style.opacity = '1';
+        modal.setAttribute('aria-hidden', 'false');
+        // little flourish
+        try{ spawnConfetti(); }catch(e){ /* no-op if missing */ }
+        log('Secret access granted — modal opened');
+    }
+    function hideSecretModal(){
+        modal.style.pointerEvents = 'none';
+        modal.style.opacity = '0';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    secretBtn.addEventListener('click', ()=>{
+        const enteredKey = (keyInput.value || '').trim().toLowerCase();
+        if(validKeys.includes(enteredKey)){
+        showSecretModal();
+        keyInput.value = '';
+        // console style log
+        console.log('%c[ACCESS GRANTED] Welcome to the undergrid...', 'color:#0ff; font-weight:bold;');
+        } else {
+        // gentle feedback
+        log('ACCESS DENIED — wrong key');
+        // small shake / UX nudge
+        keyInput.animate([{ transform: 'translateX(0)' },{ transform: 'translateX(-8px)' },{ transform: 'translateX(8px)' },{ transform: 'translateX(0)' }], { duration: 240, easing: 'ease-in-out' });
+        keyInput.value = '';
+        keyInput.focus();
+        }
+    });
+
+    closeModalBtn && closeModalBtn.addEventListener('click', hideSecretModal);
+
+    // claim pass => generate text file and trigger confetti
+    downloadBtn && downloadBtn.addEventListener('click', ()=>{
+        const passContent = `🎫 NIGHTGRID CONCERT PASS
+    ---------------------------
+    Runner: Authorized
+    Event: Neon Rain Concert
+    Time: 3:33AM Local District Time
+    Location: Subsector 7G - Chrome Alley
+    Access Level: VIP-Delta
+
+    "May your circuits stay cool and your night never end."
+    `;
+        const blob = new Blob([passContent], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "NightGrid_Concert_Pass.txt";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        log('🎉 Pass claimed — check downloads folder.');
+        try{ spawnConfetti(); }catch(e){ }
+        hideSecretModal();
+    });
+
+    // keyboard enter support when typing key
+    keyInput.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){ secretBtn.click(); }
+    });
+
+    // clicking outside modal closes it (optional)
+    modal.addEventListener('click', (e)=>{
+        if(e.target === modal) hideSecretModal();
+    });
+
+    })();
+
+  </script>
 </body>
 </html>
