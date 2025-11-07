@@ -157,6 +157,30 @@
     /* footer */
     footer{padding:18px;text-align:center;color:var(--muted);font-size:13px}
 
+    /* Featured gallery tile (insert into your existing <style>) */
+.gallery-grid { grid-auto-rows: minmax(120px, auto); } /* keep existing behaviour */
+.gallery-item.featured{
+  grid-column: 1 / -1;            /* span full row */
+  min-height: 320px;
+  display:block;
+  position:relative;
+  overflow:hidden;
+}
+.gallery-item.featured img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transform-origin:center;
+  transition:transform .45s cubic-bezier(.2,.9,.27,1), filter .3s;
+  filter: saturate(.9) contrast(.98);
+}
+@media (max-width:900px){
+  .gallery-item.featured{ min-height:260px; }
+}
+@media (max-width:520px){
+  .gallery-item.featured{ min-height:200px; }
+}
+
     /* modals */
     .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.85));backdrop-filter:blur(6px);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
     .modal.open{opacity:1;pointer-events:auto}
@@ -178,6 +202,14 @@
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <div class="muted">Status: <strong style="color:var(--neon-cyan)">GRID LIVE</strong></div>
+        <div id="creditWidget" class="widget" style="width:160px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:12px;color:var(--muted)">DataCredits</div>
+            <div style="text-align:right">
+            <div class="big-num" id="dataCredits">0</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:-6px" id="creditDelta" aria-hidden="true"></div>
+            </div>
+        </div>
+  
       <button class="btn" id="btnAutoTour">Auto Tour</button>
       <button class="btn ghost" id="btnLore">Roll Lore</button>
       <button class="btn ghost" id="btnHolo">Hologram</button>
@@ -238,19 +270,35 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div style="margin-top:14px;font-size:13px;color:var(--muted)">
-        <div><strong>Judging Criteria</strong></div>
-        <ul>
-          <li>Cyberpunk Vibe — 35%</li>
-          <li>Creativity — 30%</li>
-          <li>Functionality — 20%</li>
-          <li>AI Tool Mastery — 15%</li>
-        </ul>
+        <!-- === MINI GAME: Code Breaker === -->
+<div class="panel" style="margin-top:14px;padding:12px">
+    <h4 class="muted">Code Breaker</h4>
+    <p style="font-size:13px;color:var(--muted)">
+      Decrypt the 3-digit NightGrid vault code (100–500). You have 15 tries.
+    </p>
+  
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input id="codeGuess" maxlength="3" placeholder="000"
+        style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.12);
+        padding:8px;border-radius:8px;color:var(--text);text-align:center;
+        font-family:'Share Tech Mono',monospace" />
+      <button class="btn" onclick="checkCode()">Hack</button>
+    </div>
+  
+    <div id="gameStatus" class="muted" style="margin-top:8px;font-size:13px">
+      Awaiting input...
+    </div>
+    <div id="attemptsLeft" class="muted" style="margin-top:4px;font-size:12px;opacity:.8">
+      Attempts left: <span id="tries">15</span>
+    </div>
+  
+    <!-- Prize area (shown after win) -->
+    <div id="gamePrize" style="margin-top:10px;font-size:14px;color:var(--neon-lime);display:none;"></div>
+  </div>
       </div>
     </aside>
 
+    
     <!-- CENTER: main content -->
     <main>
       <section class="hero panel">
@@ -337,6 +385,14 @@
         </ol>
         <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="showFood()">Open Food Map</button><button class="btn ghost" onclick="addFood()">Add Stall</button></div>
       </div>
+        <div style="height:12px"></div>
+        <div class="panel" style="padding:12px;margin-top:12px">
+        <h4 class="muted">Inventory</h4>
+        <div id="inventoryList" style="min-height:52px;color:var(--muted);font-size:13px">
+            — empty —
+        </div>
+        </div>
+
 
       <div style="height:12px"></div>
         <div class="panel" style="padding:12px;margin-top:12px">
@@ -365,7 +421,6 @@
   <section class="gallery-wrap panel" id="gallerySection">
     <h3 class="gallery-title">NightGrid — Neon Gallery</h3>
     <div class="gallery-grid" id="galleryGrid">
-      <!-- Example items: replace src with your filenames -->
       <div class="gallery-item" data-title="Neo-Market Plaza" data-desc="A towering holo-billboard stares down over the wet market, neon bleeding into the rain—this frame captures the city’s economy of light and memory. It sells the cyberpunk vibe: corporate spectacle colliding with black-market intimacy, pickpocket drones in the lane and vendors trading stolen sunsets. Use this panel to call out world-building: the UI modal can surface small interactives (vendor lore, trade costs, or a “buy memory” micro-action) so the image not only looks cinematic but also invites gameplay and utility—solid marks for Functionality & Polish." onclick="openGallery(0)">
         <img src="img1.jpg" loading="lazy" alt="Neon Market"/>
         <div class="gallery-badge">Neo-Market Plaza</div>
@@ -378,6 +433,10 @@
         <img src="img3.jpg" loading="lazy" alt="Vault Skyline"/>
         <div class="gallery-badge">Zenith Corporate District</div>
       </div>
+      <div class="gallery-item featured" data-title="NightGrid — City Map" data-desc="High-resolution district map: Chrome Arc, The Grid, Vault Wards and Neon Docks. Click to zoom." onclick="openGallery(3)">
+        <img src="img4.jpeg" loading="lazy" alt="NightGrid Map"/>
+        <div class="gallery-badge">City Map</div>
+    </div>
     </div>
   </section>
   
@@ -485,6 +544,173 @@
     const log = (s)=>{const c=document.getElementById('consoleLog'); c.innerHTML += '<br>'+ s; c.scrollTop=c.scrollHeight}
     function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min}
 
+    /* === Inventory & Rewards system === */
+
+// persistent state
+let dataCredits = 0;
+const inventory = {}; // keys -> { label, addedAt }
+
+// helper: format credits (nice grouping)
+function fmtCredits(v){ return Number(v).toLocaleString(); }
+
+// update credit widget UI
+function updateCreditsUI(delta){
+  const el = document.getElementById('dataCredits');
+  if(!el) return;
+  el.textContent = fmtCredits(dataCredits);
+  const deltaEl = document.getElementById('creditDelta');
+  if(delta){
+    deltaEl.textContent = (delta>0?'+':'') + fmtCredits(delta);
+    deltaEl.style.opacity = '1';
+    deltaEl.style.transform = 'translateY(0)';
+    setTimeout(()=>{ deltaEl.style.transition='opacity .8s, transform .8s'; deltaEl.style.opacity='0'; deltaEl.style.transform='translateY(-6px)'; }, 650);
+  }
+}
+
+// add credits and animate
+function addCredits(n){
+  dataCredits += n;
+  updateCreditsUI(n);
+  log(`+${n} DataCredits awarded`);
+  // tiny glow animation on header
+  const cw = document.getElementById('creditWidget');
+  if(cw){
+    cw.animate([{ boxShadow:'0 0 0 rgba(0,0,0,0)' }, { boxShadow:'0 6px 36px rgba(0,229,255,0.08)' }], { duration:500, easing:'ease-out' });
+  }
+}
+
+// inventory UI updater
+function setInventoryUI(){
+  const container = document.getElementById('inventoryList');
+  if(!container) return;
+  const keys = Object.keys(inventory);
+  if(keys.length === 0){
+    container.innerHTML = '— empty —';
+    return;
+  }
+  container.innerHTML = '';
+  keys.forEach(k=>{
+    const item = inventory[k];
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.justifyContent = 'space-between';
+    row.style.alignItems = 'center';
+    row.style.padding = '6px 0';
+    row.innerHTML = `<div style="font-weight:700">${item.label}</div>`;
+    const btn = document.createElement('button');
+    btn.className = 'btn ghost';
+    btn.style.padding = '6px 8px';
+    btn.style.fontSize = '12px';
+    btn.textContent = 'Inspect';
+    btn.addEventListener('click', ()=>inspectInventoryItem(k));
+    row.appendChild(btn);
+    container.appendChild(row);
+  });
+}
+
+// add item to inventory (no duplicates)
+function addItemToInventory(key, label){
+  if(inventory[key]) {
+    log(`${label} already in inventory.`);
+    return;
+  }
+  inventory[key] = { label, addedAt: Date.now() };
+  setInventoryUI();
+  log(`Awarded item: ${label}`);
+}
+
+// inspect handler for inventory items
+function inspectInventoryItem(key){
+  const it = inventory[key];
+  if(!it) return;
+  // contextual behavior per item
+  if(key === 'neon_access_card'){
+    spawnWindow('Neon Access Card', `<div style="padding:10px"><p class="muted">This card opens VIP routes through Chrome Arc. Use it to reveal a private waypoint.</p><div style="margin-top:10px"><button class="btn" onclick="openVIPRoute()">Open VIP Route</button></div></div>`);
+  } else if(key === 'vault_memory_chip'){
+    spawnWindow('Vault Memory Chip', `<div style="padding:10px"><p class="muted">You can plug this chip into the Lore Terminal to unlock an ancient memory. Try <strong>Open Lore</strong> or the Lore Terminal window.</p></div>`);
+  } else if(key === 'ghostline_key'){
+    spawnWindow('Ghostline Key', `<div style="padding:10px"><p class="muted">A key for the Ghostline nodes. Toggle the Ghostline console in the Visitor Console to discover hidden pings.</p></div>`);
+  } else {
+    spawnWindow(it.label, `<div style="padding:10px"><p class="muted">${it.label}</p></div>`);
+  }
+}
+
+// effect: open VIP route (example action)
+function openVIPRoute(){
+  spawnWindow('VIP Route', `<div style="padding:12px"><h3 style="color:var(--neon-cyan);margin:0 0 8px">VIP Transit</h3><p class="muted">A hidden hop across the chrome roofline. You can use this to fast-travel between The Grid and Chrome Arc (simulated).</p><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="mapPulse()">Pulse Map</button><button class="btn ghost" onclick="spawnConfetti()">Celebrate</button></div></div>`);
+}
+
+// effect: inject memory into lore system
+function unlockMemoryChip(){
+  const extra = "Found: An old broadcast from GRANDMOTHER — a lullaby that made drones keep time. Listen if you dare.";
+  loreBits.push(extra);
+  log('Vault Memory Chip installed — extra lore unlocked.');
+}
+
+// effect: toggle ghostline console or reveal a hidden ping
+let ghostlineActive = false;
+function toggleGhostline(){
+  ghostlineActive = !ghostlineActive;
+  if(ghostlineActive){
+    log('Ghostline network activated — hidden pings now visible.');
+    spawnPing(); spawnPing(); // produce a couple of pings to hint
+  } else {
+    log('Ghostline network hidden.');
+  }
+}
+
+/* === update givePrize() to produce structured rewards and effect application === */
+
+// replace your existing givePrize() with the following or insert these changes.
+// This function chooses a reward key, applies the effect and returns the label.
+function givePrize(){
+  // reward options mapped to keys
+  const rewardOptions = [
+    { key: 'neon_access_card', label: 'Neon Access Card' },
+    { key: 'datacredits', label: '500 DataCredits' },
+    { key: 'vault_memory_chip', label: 'Vault Memory Chip' },
+    { key: 'ghostline_key', label: 'Ghostline Key' }
+  ];
+
+  // random pick
+  const pick = rewardOptions[Math.floor(Math.random() * rewardOptions.length)];
+  // apply
+  applyReward(pick.key);
+  // show small popup window and return label for UI
+  spawnWindow('Reward Unlocked', `<div style="padding:12px;text-align:center"><h3 style="color:var(--neon-cyan);margin:0 0 8px">🏆 ${pick.label}</h3><p class="muted" style="font-size:14px">Check your Inventory panel or header for the effect.</p><div style="margin-top:10px"><button class="btn ghost" onclick="this.closest('.window').remove()">Close</button></div></div>`);
+  // also show in the right console
+  log(`Reward: ${pick.label}`);
+}
+
+// central dispatcher for rewards
+function applyReward(key){
+  switch(key){
+    case 'datacredits':
+      addCredits(500);
+      break;
+    case 'neon_access_card':
+      addItemToInventory('neon_access_card', 'Neon Access Card');
+      break;
+    case 'vault_memory_chip':
+      addItemToInventory('vault_memory_chip', 'Vault Memory Chip');
+      // add immediate lore unlock to connect to functionality
+      unlockMemoryChip();
+      break;
+    case 'ghostline_key':
+      addItemToInventory('ghostline_key', 'Ghostline Key');
+      // also toggle ghostline active immediately to give feedback
+      toggleGhostline();
+      break;
+    default:
+      // fallback: small credit reward
+      addCredits(100);
+      break;
+  }
+  // extra flourish
+  try{ spawnConfetti(); }catch(e){}
+  updateCreditsUI(0); // refresh
+}
+
     // === widgets live data ===
     function updateWidgets(){
       document.getElementById('activeCount').innerText = (rnd(12000, 98900)).toLocaleString();
@@ -580,12 +806,57 @@
     function speakHolo(line){const box=document.getElementById('holoBox'); const t=document.getElementById('holoText'); box.style.filter='drop-shadow(0 0 10px rgba(0,229,255,.6))'; t.textContent=''; let i=0; const s=(line||holoLines[Math.floor(Math.random()*holoLines.length)]); const iv=setInterval(()=>{t.textContent += s[i]||''; i++; if(i>s.length){clearInterval(iv); setTimeout(()=>box.style.filter='', 600)}}, 14)}
 
     // === draggable windows ===
-    const desktop=document.getElementById('desktop'); let z=100; function spawnWindow(title, content){const win=document.createElement('div'); win.className='window'; win.style.left=rnd(60, innerWidth-420)+'px'; win.style.top=rnd(80, innerHeight-260)+'px'; win.style.zIndex=++z; win.innerHTML=`
-      <div class="bar">
-        <div style="display:flex; align-items:center; gap:8px"><span class="win-btn" style="background:#ff5f57"></span><span class="win-btn" style="background:#ffbd2e"></span><span class="win-btn" style="background:#28c840"></span> <strong style="margin-left:6px">${title}</strong></div>
-        <div style="display:flex; gap:6px"><button class="btn ghost" style="padding:6px 8px" onclick="this.closest('.window').remove()">Close</button></div>
+    const desktop=document.getElementById('desktop'); let z=100; // REPLACE your existing spawnWindow(...) with this function
+function spawnWindow(title, content){
+  const win = document.createElement('div');
+  win.className = 'window';
+  win.style.left = rnd(60, innerWidth-420)+'px';
+  win.style.top = rnd(80, innerHeight-260)+'px';
+  win.style.zIndex = ++z;
+
+  // NOTE: top-right close removed here (we only keep the title area)
+  win.innerHTML = `
+    <div class="bar">
+      <div style="display:flex; align-items:center; gap:8px">
+        <span class="win-btn" style="background:#ff5f57"></span>
+        <span class="win-btn" style="background:#ffbd2e"></span>
+        <span class="win-btn" style="background:#28c840"></span>
+        <strong style="margin-left:6px">${title}</strong>
       </div>
-      <div class="body">${content}</div>`; desktop.appendChild(win); enableDrag(win); win.style.display='block'; return win}
+      <!-- top-right close removed on purpose -->
+    </div>
+    <div class="body">${content}</div>
+  `;
+
+  desktop.appendChild(win);
+  enableDrag(win);
+  win.style.display = 'block';
+
+  // ensure there's a bottom close button (so every window has one working close)
+  // If the content already includes an element with data-close attribute or a button with class .close-manual,
+  // we won't add another close button (this allows caller to provide custom close if desired).
+  const body = win.querySelector('.body');
+  const hasManualClose = body.querySelector('[data-close], .close-manual, button.close');
+  if(!hasManualClose){
+    const btnWrap = document.createElement('div');
+    btnWrap.style.display = 'flex';
+    btnWrap.style.justifyContent = 'flex-end';
+    btnWrap.style.marginTop = '10px';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn ghost';
+    closeBtn.style.padding = '6px 8px';
+    closeBtn.style.fontSize = '13px';
+    closeBtn.textContent = 'Close';
+    closeBtn.addEventListener('click', ()=> win.remove());
+
+    btnWrap.appendChild(closeBtn);
+    body.appendChild(btnWrap);
+  }
+
+  return win;
+}
+
     function enableDrag(win){const bar=win.querySelector('.bar'); let ox=0,oy=0,drag=0; bar.addEventListener('pointerdown', e=>{drag=1; ox=e.clientX - win.offsetLeft; oy=e.clientY - win.offsetTop; win.setPointerCapture(e.pointerId)}); bar.addEventListener('pointermove', e=>{if(!drag) return; win.style.left = (e.clientX - ox) +'px'; win.style.top=(e.clientY - oy)+'px';}); bar.addEventListener('pointerup', e=>{drag=0; try{win.releasePointerCapture(e.pointerId)}catch{}}); win.addEventListener('pointerdown', ()=>win.style.zIndex=++z)}
     function openLoreWindow(){spawnWindow('Lore Terminal', `<div id="loreInWin" class="muted">Press <em>Roll</em> for fresh intel.</div><div style="display:flex; gap:8px; margin-top:10px"><button class="btn" onclick="document.getElementById('loreInWin').textContent=randomLore()">Roll</button><button class="btn ghost" onclick="spawnConfetti()">Celebrate</button></div>`) }
 
@@ -638,7 +909,24 @@
     // === helper: click positions for ripples ===
     document.addEventListener('click', (e)=>{ if(e.target.classList.contains('btn')) return; const dot=document.createElement('div'); dot.style.cssText=`position:fixed; left:${e.clientX-6}px; top:${e.clientY-6}px; width:12px; height:12px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.8) 0%, transparent 60%); mix-blend-mode:screen; pointer-events:none; z-index:20; opacity:.9; transform:scale(.6); transition:all .5s ease-out`; document.body.appendChild(dot); setTimeout(()=>{dot.style.opacity='0'; dot.style.transform='scale(2.2)';}, 10); setTimeout(()=>dot.remove(), 520) })
 
-
+    // === cursor particles (glowing trail) ===
+if (matchMedia('(pointer:fine)').matches) {
+  document.addEventListener('mousemove', e => {
+    const dot = document.createElement('div');
+    dot.style.cssText = `
+      position:fixed;
+      top:${e.clientY}px;
+      left:${e.clientX}px;
+      width:6px;height:6px;border-radius:50%;
+      background:#0ff; box-shadow:0 0 10px #0ff;
+      pointer-events:none; opacity:0.6; z-index:15;
+      transition:opacity .3s linear;
+    `;
+    document.body.appendChild(dot);
+    setTimeout(()=> dot.style.opacity = 0, 10);
+    setTimeout(()=> dot.remove(), 300);
+  });
+}
     // --- gallery JS (lightbox + pass) ---
     const galleryModal = document.getElementById('galleryModal');
     const modalImg = document.getElementById('galleryModalImg');
@@ -760,6 +1048,80 @@
 
     })();
 
+    // === MINI GAME: Code Breaker v3 (with popup + prize below) ===
+let secretCode = Math.floor(100 + Math.random() * 401); // 100–500
+let triesLeft = 15;
+
+function checkCode(){
+  const input = document.getElementById('codeGuess').value.trim();
+  const status = document.getElementById('gameStatus');
+  const triesEl = document.getElementById('tries');
+  const prizeBox = document.getElementById('gamePrize');
+
+  if(!/^\d{3}$/.test(input)){
+    status.innerHTML = "⚠️ Enter a 3-digit number between 100–500.";
+    return;
+  }
+
+  if(triesLeft <= 0){
+    status.innerHTML = "💀 Locked out. Resetting...";
+    setTimeout(resetGame, 1500);
+    return;
+  }
+
+  triesLeft--;
+  triesEl.textContent = triesLeft;
+  const guess = parseInt(input);
+
+  if(guess === secretCode){
+    status.innerHTML = "<span style='color:var(--neon-lime)'>ACCESS GRANTED</span> 🔓";
+    prizeBox.style.display = "block";
+    givePrize(); // triggers popup + message
+    spawnConfetti();
+    setTimeout(resetGame, 3500);
+  } else if (guess > secretCode){
+    status.innerHTML = "Too high ⚡ Try again.";
+  } else {
+    status.innerHTML = "Too low ⚙️ Try again.";
+  }
+
+  if(triesLeft === 0 && guess !== secretCode){
+    status.innerHTML = "<span style='color:var(--neon-pink)'>ACCESS DENIED</span> 🔒";
+    setTimeout(resetGame, 2500);
+  }
+}
+
+// function givePrize(){
+//   const rewards = [
+//     "🎁 <strong>Neon Access Card</strong> — VIP entry to Chrome Arc.",
+//     "🪙 <strong>500 DataCredits</strong> — spend them in The Grid.",
+//     "💾 <strong>Vault Memory Chip</strong> — ancient lore unlocked.",
+//     "🔑 <strong>Ghostline Key</strong> — secret network terminals active."
+//   ];
+//   const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+//   // show below the game
+//   const prizeBox = document.getElementById('gamePrize');
+//   prizeBox.innerHTML = `Reward Unlocked: ${reward}`;
+
+//   // also show a popup window (draggable style)
+//   const html = `
+//     <div style="text-align:center;padding:10px">
+//       <h3 style="color:var(--neon-cyan);margin:0 0 6px">🏆 Code Breaker Reward</h3>
+//       <p class="muted" style="font-size:14px">${reward}</p>
+//       <div style="margin-top:10px"><button class="btn ghost" onclick="this.closest('.window').remove()">Close</button></div>
+//     </div>`;
+//   spawnWindow('Reward Unlocked', html);
+// }
+
+function resetGame(){
+  secretCode = Math.floor(100 + Math.random() * 401);
+  triesLeft = 15;
+  document.getElementById('tries').textContent = triesLeft;
+  document.getElementById('gameStatus').textContent = "Awaiting input...";
+  document.getElementById('codeGuess').value = "";
+  document.getElementById('gamePrize').style.display = "none";
+}
   </script>
 </body>
 </html>
